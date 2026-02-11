@@ -1,0 +1,248 @@
+<div class="page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">PF</span>
+      <div>
+        <p class="brand-title">Personal Finance Tracker</p>
+        <p class="brand-subtitle">Full-stack demo</p>
+      </div>
+    </div>
+    <nav class="actions">
+      <button class="btn ghost" (click)="refreshReport()" [disabled]="!isAuthenticated()">
+        Refresh report
+      </button>
+      <button class="btn primary" *ngIf="isAuthenticated()" (click)="logout()">
+        Sign out
+      </button>
+    </nav>
+  </header>
+
+  <main class="content">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Monthly overview</p>
+        <h1>Stay on top of every rupee.</h1>
+        <p class="sub">
+          Track income, expenses, budgets, and categories with a live MongoDB backend.
+        </p>
+        <div class="cta">
+          <button class="btn primary" (click)="refreshReport()" [disabled]="!isAuthenticated()">
+            Refresh summary
+          </button>
+          <button class="btn ghost" (click)="logout()" [disabled]="!isAuthenticated()">
+            Clear session
+          </button>
+        </div>
+        <p class="inline-note" *ngIf="message()">{{ message() }}</p>
+      </div>
+      <div class="hero-card">
+        <p class="card-label">Net balance ({{ report()?.month || selectedMonth }})</p>
+        <p class="card-value">INR {{ report()?.net || 0 }}</p>
+        <div class="card-meta">
+          <span class="pill positive">Income: INR {{ report()?.income || 0 }}</span>
+          <span class="pill neutral">Expense: INR {{ report()?.expense || 0 }}</span>
+        </div>
+        <div class="month-picker">
+          <label for="month">Report month</label>
+          <input id="month" type="month" [(ngModel)]="selectedMonth" (change)="refreshReport()" />
+        </div>
+      </div>
+    </section>
+
+    <section class="auth" *ngIf="!isAuthenticated()">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Create account</h2>
+        </div>
+        <form class="form" (ngSubmit)="register()">
+          <label>
+            Name
+            <input type="text" [(ngModel)]="registerForm.name" name="regName" required />
+          </label>
+          <label>
+            Email
+            <input type="email" [(ngModel)]="registerForm.email" name="regEmail" required />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              [(ngModel)]="registerForm.password"
+              name="regPassword"
+              required
+            />
+          </label>
+          <button class="btn primary" type="submit">Register</button>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Sign in</h2>
+        </div>
+        <form class="form" (ngSubmit)="login()">
+          <label>
+            Email
+            <input type="email" [(ngModel)]="loginForm.email" name="loginEmail" required />
+          </label>
+          <label>
+            Password
+            <input type="password" [(ngModel)]="loginForm.password" name="loginPassword" required />
+          </label>
+          <button class="btn primary" type="submit">Login</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="stats" *ngIf="isAuthenticated()">
+      <div class="stat">
+        <p class="stat-label">Signed in</p>
+        <p class="stat-value">{{ user()?.name }}</p>
+        <p class="stat-foot">{{ user()?.email }}</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Categories</p>
+        <p class="stat-value">{{ categories().length }}</p>
+        <p class="stat-foot">Income + expense</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Transactions</p>
+        <p class="stat-value">{{ transactions().length }}</p>
+        <p class="stat-foot">Recent items</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Budgets</p>
+        <p class="stat-value">{{ budgets().length }}</p>
+        <p class="stat-foot">Monthly limits</p>
+      </div>
+    </section>
+
+    <section class="split" *ngIf="isAuthenticated()">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Categories</h2>
+        </div>
+        <form class="form" (ngSubmit)="addCategory()">
+          <label>
+            Category name
+            <input type="text" [(ngModel)]="categoryForm.name" name="catName" required />
+          </label>
+          <label>
+            Type
+            <select [(ngModel)]="categoryForm.type" name="catType">
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </label>
+          <button class="btn primary" type="submit">Add category</button>
+        </form>
+        <ul class="list compact">
+          <li *ngFor="let item of categories()">
+            <div>
+              <p class="list-title">{{ item.name }}</p>
+              <p class="list-sub">{{ item.type | titlecase }}</p>
+            </div>
+            <button class="btn ghost" (click)="deleteCategory(item._id)">Delete</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Add transaction</h2>
+        </div>
+        <form class="form" (ngSubmit)="addTransaction()">
+          <label>
+            Type
+            <select [(ngModel)]="transactionForm.type" name="txType">
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </label>
+          <label>
+            Amount
+            <input type="number" [(ngModel)]="transactionForm.amount" name="txAmount" required />
+          </label>
+          <label>
+            Category
+            <select [(ngModel)]="transactionForm.categoryId" name="txCategory">
+              <option value="">Unassigned</option>
+              <option *ngFor="let item of categories()" [value]="item._id">
+                {{ item.name }}
+              </option>
+            </select>
+          </label>
+          <label>
+            Date
+            <input type="date" [(ngModel)]="transactionForm.date" name="txDate" required />
+          </label>
+          <label>
+            Note
+            <input type="text" [(ngModel)]="transactionForm.note" name="txNote" />
+          </label>
+          <button class="btn primary" type="submit">Save transaction</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="split" *ngIf="isAuthenticated()">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Recent transactions</h2>
+        </div>
+        <ul class="list">
+          <li *ngFor="let item of transactions()">
+            <div>
+              <p class="list-title">
+                {{ item.type | titlecase }} - INR {{ item.amount }}
+              </p>
+              <p class="list-sub">{{ item.date | date: 'mediumDate' }} {{ item.note }}</p>
+            </div>
+            <button class="btn ghost" (click)="deleteTransaction(item._id)">Delete</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Budgets</h2>
+        </div>
+        <form class="form" (ngSubmit)="addBudget()">
+          <label>
+            Category
+            <select [(ngModel)]="budgetForm.categoryId" name="budgetCategory" required>
+              <option value="">Select category</option>
+              <option *ngFor="let item of categories()" [value]="item._id">
+                {{ item.name }}
+              </option>
+            </select>
+          </label>
+          <label>
+            Month
+            <input type="month" [(ngModel)]="budgetForm.month" name="budgetMonth" required />
+          </label>
+          <label>
+            Limit (INR)
+            <input type="number" [(ngModel)]="budgetForm.limit" name="budgetLimit" required />
+          </label>
+          <button class="btn primary" type="submit">Add budget</button>
+        </form>
+        <ul class="list compact">
+          <li *ngFor="let item of budgets()">
+            <div>
+              <p class="list-title">INR {{ item.limit }}</p>
+              <p class="list-sub">{{ item.month }}</p>
+            </div>
+            <button class="btn ghost" (click)="deleteBudget(item._id)">Delete</button>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Backend: http://localhost:4000 | Frontend: http://localhost:4200</p>
+  </footer>
+</div>
