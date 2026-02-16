@@ -1,0 +1,22 @@
+{
+  "name": "finance-backend",
+  "version": "1.0.0",
+  "description": "Personal finance tracker backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --runInBand --reporters=default --reporters=jest-junit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "supertest": "^6.3.4"
+  }
+}
