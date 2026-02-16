@@ -3,3 +3,5 @@ backend/node_modules/
 *.log
 .env
 .DS_Store
+junit.xml
+test-reports/
